@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">LocaLife</string>
+    <string name="textview_profile_header">Profiles</string>
+
+    <!--Values for Profile Creation Dialog-->
+    <string name="profile_creator_dialog_accept">CREATE</string>
+    <string name="profile_creator_dialog_decline">CANCEL</string>
+    <string name="profile_creator_dialog_title">Enter Profile Name</string>
+    <string name="profile_creator_dialog_message">i.e. Home, Office, etc.</string>
 </resources>
