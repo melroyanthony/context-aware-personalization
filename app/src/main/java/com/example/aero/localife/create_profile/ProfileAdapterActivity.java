@@ -1,4 +1,4 @@
-package com.example.aero.localife;
+package com.example.aero.localife.create_profile;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,12 +7,11 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import com.example.aero.localife.R;
+
 import java.util.List;
 
 
-/**
- * Created by aero on 4/1/16.
- */
 public class ProfileAdapterActivity extends ArrayAdapter<ProfileListActivity> {
     private List<ProfileListActivity> profileListActivity;
     private Context context;

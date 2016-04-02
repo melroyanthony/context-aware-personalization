@@ -1,8 +1,5 @@
-package com.example.aero.localife;
+package com.example.aero.localife.create_profile;
 
-/**
- This activity handles the list of Profiles created
- **/
 public class ProfileListActivity {
  private String profileName;
  public ProfileListActivity(String profileName) {
