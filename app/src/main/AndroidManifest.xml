@@ -26,7 +26,16 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".create_profile.ProfileCreatorActivity" />
+
+            <intent-filter>
+                <category android:name="android.intent.category.PREFERENCE" />
+            </intent-filter>
         </activity>
+
+        <service
+            android:name=".create_profile.GPSLocationServiceActivity"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>
