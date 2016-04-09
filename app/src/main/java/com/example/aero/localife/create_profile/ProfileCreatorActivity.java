@@ -21,19 +21,17 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.aero.localife.DatabaseHelperActivity;
+import com.example.aero.localife.ProfileListActivity;
 import com.example.aero.localife.R;
 import com.example.aero.localife.profile_settings.ProfileSettingsActivity;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ProfileCreatorActivity extends AppCompatActivity {
 
     //Variable Declarations
     FloatingActionButton fabForProfileCreation;
-    List<ProfileListActivity> profileListActivity = new ArrayList<ProfileListActivity>();
-    ProfileAdapterActivity profileAdapterActivity;
     GPSLocationServiceActivity gpsLocationServiceActivity;
+    DatabaseHelperActivity databaseHelperActivity;
 
     //LOG Strings
     private static final String PROFILE_SELECTED_TAG = "Profile Selected LOG:";
@@ -46,24 +44,19 @@ public class ProfileCreatorActivity extends AppCompatActivity {
         //inflating the layout for profile-creation activity
         setContentView(R.layout.activity_profile_creator);
 
-        //Inflate Sample Profiles on Launching the App
-        //this method which handles the code for inflating the default profiles
-        dummyProfile();
+        databaseHelperActivity = new DatabaseHelperActivity(getApplicationContext());
 
         ListView listView = (ListView) findViewById(R.id.listview_profile_creator);
 
-        profileAdapterActivity = new ProfileAdapterActivity(profileListActivity, this);
-
-        assert listView != null;
-        listView.setAdapter(profileAdapterActivity);
+        //TODO transfer this logic to display the list-item
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 //Code to handle the item click events for listview
-                String selectedProfile = profileListActivity.get(position).getName();
-                Log.i(PROFILE_SELECTED_TAG, "Opening "+selectedProfile);
-                gotoProfileSettingsActivity(selectedProfile);
+//                String selectedProfile = profileListActivity.get(position).getProfileName();
+//                Log.i(PROFILE_SELECTED_TAG, "Opening "+selectedProfile);
+//                gotoProfileSettingsActivity(selectedProfile);
 
             }
         });
@@ -145,9 +138,11 @@ public class ProfileCreatorActivity extends AppCompatActivity {
 
                         } else {
 
-                            String profileName =  editTextProfileName.getText().toString();
-                            ProfileCreatorActivity.this.profileListActivity.add(new ProfileListActivity(profileName));
-                            ProfileCreatorActivity.this.profileAdapterActivity.notifyDataSetChanged();
+                            String profileName =  editTextProfileName.getText().toString().trim();
+                            String latitudeValue = textViewLatitude.getText().toString().trim();
+                            String longitudeValue = textViewLongitude.getText().toString().trim();
+                            //TODO logic for entering values in profile table
+                            databaseHelperActivity.createNewProfile(new ProfileListActivity(profileName, latitudeValue, longitudeValue));
                             dialog.dismiss();
 
                         }
@@ -181,36 +176,30 @@ public class ProfileCreatorActivity extends AppCompatActivity {
 
     }
 
-    private void dummyProfile() {
 
-        profileListActivity.add(new ProfileListActivity("Home"));
-        profileListActivity.add(new ProfileListActivity("Office"));
-
-    }
-
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v,
-                                    ContextMenu.ContextMenuInfo menuInfo) {
-
-        super.onCreateContextMenu(menu, v, menuInfo);
-        AdapterView.AdapterContextMenuInfo aInfo = (AdapterView.AdapterContextMenuInfo) menuInfo;
-
-        // We know that each row in the adapter is a Map
-        ProfileListActivity profileListActivity =  profileAdapterActivity.getItem(aInfo.position);
-
-        menu.setHeaderTitle("Options for " + profileListActivity.getName());
-        menu.add(1, 1, 1, "Delete");
-
-    }
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-
-        AdapterView.AdapterContextMenuInfo aInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        profileListActivity.remove(aInfo.position);
-        profileAdapterActivity.notifyDataSetChanged();
-        return true;
-    }
+//    @Override
+//    public void onCreateContextMenu(ContextMenu menu, View v,
+//                                    ContextMenu.ContextMenuInfo menuInfo) {
+//
+//        super.onCreateContextMenu(menu, v, menuInfo);
+//        AdapterView.AdapterContextMenuInfo aInfo = (AdapterView.AdapterContextMenuInfo) menuInfo;
+//
+//        // We know that each row in the adapter is a Map
+//        ProfileListActivity profileListActivity =  profileAdapterActivity.getItem(aInfo.position);
+//
+//        menu.setHeaderTitle("Options for " + profileListActivity.getProfileName());
+//        menu.add(1, 1, 1, "Delete");
+//
+//    }
+//
+//    @Override
+//    public boolean onContextItemSelected(MenuItem item) {
+//
+//        AdapterView.AdapterContextMenuInfo aInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+//        profileListActivity.remove(aInfo.position);
+//        profileAdapterActivity.notifyDataSetChanged();
+//        return true;
+//    }
 
 }
 
