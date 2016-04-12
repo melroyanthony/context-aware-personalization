@@ -6,7 +6,7 @@
 
     <item
         android:id="@+id/switch_on_off_profile"
-        android:title="@string/switch_for_profile_settings"
+        android:title="@string/switch_for_bluetooth_settings"
         app:showAsAction="always"/>
 
 </menu>

@@ -1,36 +1,28 @@
 package com.example.aero.localife.profile_settings;
 
-import android.content.SharedPreferences;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
+import android.bluetooth.BluetoothAdapter;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import android.preference.PreferenceGroup;
-import android.preference.PreferenceManager;
-import android.preference.RingtonePreference;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatDelegate;
+import android.preference.SwitchPreference;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 
+import com.example.aero.localife.DatabaseHelperActivity;
 import com.example.aero.localife.R;
 
-public class ProfileSettingsActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener{
+public class ProfileSettingsActivity extends PreferenceActivity {
 
-    private AppCompatDelegate appCompatDelegate;
+    DatabaseHelperActivity databaseHelperActivity;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        getDelegate().installViewFactory();
-        getDelegate().onCreate(savedInstanceState);
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_profile_settings);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_profile_settings);
-        setSupportActionBar(toolbar);
 
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -39,101 +31,70 @@ public class ProfileSettingsActivity extends PreferenceActivity implements Share
             }
         });
 
-        String activityTitle = getIntent().getStringExtra("Profile Selected");
+        final String activityTitle = getIntent().getStringExtra("Profile Selected");
         toolbar.setTitle(activityTitle);
         addPreferencesFromResource(R.xml.pref_settings);
 
-        PreferenceManager.setDefaultValues(ProfileSettingsActivity.this, R.xml.pref_settings, false);
-        initSummary(getPreferenceScreen());
-    }
+        //Defining the Preferences
+        final SwitchPreference bluetoothStatus = (SwitchPreference) findPreference("switch_pref_enable_disable_profile");
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Set up a listener whenever a key changes
-        getPreferenceScreen().getSharedPreferences()
-                .registerOnSharedPreferenceChangeListener(this);
-    }
+        final String profileDisabled = bluetoothStatus.getSwitchTextOff().toString().trim();
+        final String profileEnabled = bluetoothStatus.getSwitchTextOn().toString().trim();
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        // Unregister the listener whenever a key changes
-        getPreferenceScreen().getSharedPreferences()
-                .unregisterOnSharedPreferenceChangeListener(this);
-    }
+        //TODO logic for inflating the values for the bluetooth toggle for the corresponding profile
 
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-                                          String key) {
-        updatePrefSummary(findPreference(key));
-    }
+        databaseHelperActivity = new DatabaseHelperActivity(ProfileSettingsActivity.this);
+        final String returnedBluetoothValue = databaseHelperActivity.getCurrentBluetoothValue(activityTitle);
+        Log.i("Bluetooth Value LOG:", returnedBluetoothValue);
 
-    private void initSummary(Preference p) {
-        if (p instanceof PreferenceGroup) {
-            PreferenceGroup pGrp = (PreferenceGroup) p;
-            for (int i = 0; i < pGrp.getPreferenceCount(); i++) {
-                initSummary(pGrp.getPreference(i));
-            }
-        } else {
-            updatePrefSummary(p);
-        }
-    }
+        if (returnedBluetoothValue.equals(profileEnabled.trim())){
+            bluetoothStatus.setChecked(true);
+//            bluetoothStatus.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//                @Override
+//                public boolean onPreferenceChange(Preference preference, Object newValue) {
+//                    bluetoothStatus.setSummaryOff(R.string.switch_pref_summary_off);
+//                    databaseHelperActivity.onUpdateBluetoothValue(activityTitle, profileDisabled);
+//                    BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//                    mBluetoothAdapter.disable();
+//                    return true;
+//                }
+//            });
 
-    private void updatePrefSummary(Preference p) {
-
-        if (p instanceof RingtonePreference) {
-            final RingtonePreference ringtonePreference = (RingtonePreference) p;
-            p.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            bluetoothStatus.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
-                public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    Ringtone ringtone = RingtoneManager.getRingtone(ProfileSettingsActivity.this, Uri.parse((String) newValue));
-                    ringtonePreference.setSummary(ringtone.getTitle(ProfileSettingsActivity.this));
+                public boolean onPreferenceClick(Preference preference) {
+                    bluetoothStatus.setSummaryOff(R.string.switch_pref_summary_off);
+                    databaseHelperActivity.onUpdateBluetoothValue(activityTitle, profileDisabled);
+                    BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                    mBluetoothAdapter.disable();
                     return true;
                 }
             });
-            String ringtonePath = p.getSharedPreferences().getString(p.getKey(), "ringtone_pref_selection");
-            Ringtone ringtone = RingtoneManager.getRingtone(ProfileSettingsActivity.this, Uri.parse(ringtonePath));
-            ringtonePreference.setSummary(ringtone.getTitle(ProfileSettingsActivity.this));
+        }
+        else {
+            bluetoothStatus.setChecked(false);
+//            bluetoothStatus.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//                @Override
+//                public boolean onPreferenceChange(Preference preference, Object newValue) {
+//                    bluetoothStatus.setSummaryOn(R.string.switch_pref_summary_on);
+//                    databaseHelperActivity.onUpdateBluetoothValue(activityTitle, profileEnabled);
+//                    BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//                    mBluetoothAdapter.enable();
+//                    return true;
+//                }
+//            });
+
+            bluetoothStatus.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    bluetoothStatus.setSummaryOn(R.string.switch_pref_summary_on);
+                    databaseHelperActivity.onUpdateBluetoothValue(activityTitle, profileEnabled);
+                    BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                    mBluetoothAdapter.enable();
+                    return true;
+                }
+            });
         }
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        getDelegate().onPostCreate(savedInstanceState);
-    }
-
-    @Override
-    public void setContentView(@LayoutRes int layoutResID) {
-        getDelegate().setContentView(layoutResID);
-    }
-
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-        getDelegate().onPostResume();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        getDelegate().onStop();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        getDelegate().onDestroy();
-    }
-
-    private void setSupportActionBar(@Nullable Toolbar toolbar) {
-        getDelegate().setSupportActionBar(toolbar);
-    }
-
-    private AppCompatDelegate getDelegate() {
-        if (appCompatDelegate == null) {
-            appCompatDelegate = AppCompatDelegate.create(this, null);
-        }
-        return appCompatDelegate;
-    }
 }

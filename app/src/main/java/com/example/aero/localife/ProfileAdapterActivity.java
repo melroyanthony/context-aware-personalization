@@ -11,6 +11,8 @@ import android.widget.TextView;
 import com.example.aero.localife.ProfileListActivity;
 import com.example.aero.localife.R;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +53,8 @@ public class ProfileAdapterActivity extends BaseAdapter {
 
         TextView textViewProfileName = (TextView) convertView.findViewById(R.id.textView_profiles);
         textViewProfileName.setText(profileListItems.getProfileName());
+        TextView textViewProfileLocation = (TextView) convertView.findViewById(R.id.textView_location);
+        textViewProfileLocation.setText(profileListItems.getLatitudeValue()+", "+profileListItems.getLongitudeValue());
         return convertView;
     }
 }

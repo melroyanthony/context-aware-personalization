@@ -3,15 +3,16 @@ package com.example.aero.localife.create_profile;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.media.MediaBrowserCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Gravity;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -22,9 +23,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.aero.localife.DatabaseHelperActivity;
+import com.example.aero.localife.ProfileAdapterActivity;
 import com.example.aero.localife.ProfileListActivity;
 import com.example.aero.localife.R;
 import com.example.aero.localife.profile_settings.ProfileSettingsActivity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProfileCreatorActivity extends AppCompatActivity {
 
@@ -32,6 +37,8 @@ public class ProfileCreatorActivity extends AppCompatActivity {
     FloatingActionButton fabForProfileCreation;
     GPSLocationServiceActivity gpsLocationServiceActivity;
     DatabaseHelperActivity databaseHelperActivity;
+    public ProfileAdapterActivity profileAdapterActivity;
+    ListView listView;
 
     //LOG Strings
     private static final String PROFILE_SELECTED_TAG = "Profile Selected LOG:";
@@ -46,20 +53,9 @@ public class ProfileCreatorActivity extends AppCompatActivity {
 
         databaseHelperActivity = new DatabaseHelperActivity(getApplicationContext());
 
-        ListView listView = (ListView) findViewById(R.id.listview_profile_creator);
+        listView = (ListView) findViewById(R.id.listview_profile_creator);
 
-        //TODO transfer this logic to display the list-item
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                //Code to handle the item click events for listview
-//                String selectedProfile = profileListActivity.get(position).getProfileName();
-//                Log.i(PROFILE_SELECTED_TAG, "Opening "+selectedProfile);
-//                gotoProfileSettingsActivity(selectedProfile);
-
-            }
-        });
+        displayProfiles();
 
         //Code to handle the floating action button to create profile
         fabForProfileCreation = (FloatingActionButton) findViewById(R.id.fab_profile_creator);
@@ -109,10 +105,10 @@ public class ProfileCreatorActivity extends AppCompatActivity {
                         if (gpsLocationServiceActivity.canGetLocation()) {
 
                             //code to fetch the latitude & longitude for the current profile
-                            double latitude = gpsLocationServiceActivity.getLatitude();
-                            double longitude = gpsLocationServiceActivity.getLongitude();
-                            textViewLatitude.setText("Latitude: " + latitude);
-                            textViewLongitude.setText("Longitude: " + longitude);
+                            String latitude = String.valueOf(gpsLocationServiceActivity.getLatitude());
+                            String longitude = String.valueOf(gpsLocationServiceActivity.getLongitude());
+                            textViewLatitude.setText(latitude);
+                            textViewLongitude.setText(longitude);
 
                         } else {
 
@@ -141,8 +137,9 @@ public class ProfileCreatorActivity extends AppCompatActivity {
                             String profileName =  editTextProfileName.getText().toString().trim();
                             String latitudeValue = textViewLatitude.getText().toString().trim();
                             String longitudeValue = textViewLongitude.getText().toString().trim();
-                            //TODO logic for entering values in profile table
-                            databaseHelperActivity.createNewProfile(new ProfileListActivity(profileName, latitudeValue, longitudeValue));
+                            String statusValue = "OFF";
+                            databaseHelperActivity.createNewProfile(new ProfileListActivity(profileName, latitudeValue, longitudeValue, statusValue));
+                            displayProfiles();
                             dialog.dismiss();
 
                         }
@@ -168,6 +165,32 @@ public class ProfileCreatorActivity extends AppCompatActivity {
 
     }
 
+    private void displayProfiles() {
+        List<ProfileListActivity> profileListItems = new ArrayList<ProfileListActivity>();
+        profileListItems.clear();
+        profileListItems = databaseHelperActivity.getAllProfiles();
+        ProfileAdapterActivity profileAdapter = new ProfileAdapterActivity(ProfileCreatorActivity.this, (ArrayList<ProfileListActivity>) profileListItems);
+        for (ProfileListActivity pl : profileListItems){
+            String log = "Profile Name: " + pl.getProfileName() + " Latitude: " + pl.getLatitudeValue() + " Longitude: " + pl.getLongitudeValue() + " Bluetooth Status: " + pl.getBluetoothStatus();
+            Log.d("Profile created: ", log);
+        }
+        listView.setAdapter(profileAdapter);
+        final List<ProfileListActivity> finalProfileListItems = profileListItems;
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                //Code to handle the item click events for listview
+                String selectedProfile = finalProfileListItems.get(position).getProfileName();
+                Log.i(PROFILE_SELECTED_TAG, "Opening "+selectedProfile);
+                gotoProfileSettingsActivity(selectedProfile);
+
+            }
+        });
+
+        registerForContextMenu(listView);
+    }
+
     private void gotoProfileSettingsActivity(String selectedProfile) {
 
         Intent intent = new Intent(ProfileCreatorActivity.this, ProfileSettingsActivity.class);
@@ -176,31 +199,11 @@ public class ProfileCreatorActivity extends AppCompatActivity {
 
     }
 
-
-//    @Override
-//    public void onCreateContextMenu(ContextMenu menu, View v,
-//                                    ContextMenu.ContextMenuInfo menuInfo) {
-//
-//        super.onCreateContextMenu(menu, v, menuInfo);
-//        AdapterView.AdapterContextMenuInfo aInfo = (AdapterView.AdapterContextMenuInfo) menuInfo;
-//
-//        // We know that each row in the adapter is a Map
-//        ProfileListActivity profileListActivity =  profileAdapterActivity.getItem(aInfo.position);
-//
-//        menu.setHeaderTitle("Options for " + profileListActivity.getProfileName());
-//        menu.add(1, 1, 1, "Delete");
-//
-//    }
-//
-//    @Override
-//    public boolean onContextItemSelected(MenuItem item) {
-//
-//        AdapterView.AdapterContextMenuInfo aInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-//        profileListActivity.remove(aInfo.position);
-//        profileAdapterActivity.notifyDataSetChanged();
-//        return true;
-//    }
-
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        //TODO logic for creating a custom context menu to delete the profile
+    }
 }
 
 

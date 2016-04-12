@@ -5,11 +5,15 @@ public class ProfileListActivity {
  private String profileName;
  private String latitudeValue;
  private String longitudeValue;
+ private String bluetoothStatus;
 
- public ProfileListActivity(String profileName, String latitudeValue, String longitudeValue) {
+ public ProfileListActivity(){} // empty constructor
+
+ public ProfileListActivity(String profileName, String latitudeValue, String longitudeValue, String bluetoothStatus) {
    this.profileName = profileName;
    this.latitudeValue = latitudeValue;
    this.longitudeValue = longitudeValue;
+   this.bluetoothStatus = bluetoothStatus;
  }
 
  //setter method
@@ -34,12 +38,22 @@ public class ProfileListActivity {
 
  //setter method
  public void setLongitudeValue(String longitudeValue){
-  this.longitudeValue = longitudeValue;
- }
+        this.longitudeValue = longitudeValue;
+    }
 
  //getter method
  public String getLongitudeValue(){
-  return longitudeValue;
+        return longitudeValue;
+    }
+
+ //setter method
+ public void setBluetoothStatus(String bluetoothStatus){
+  this.bluetoothStatus = bluetoothStatus;
+ }
+
+ //getter method
+ public String getBluetoothStatus(){
+  return bluetoothStatus;
  }
 
 }
