@@ -16,6 +16,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -50,6 +51,8 @@ public class ProfileCreatorActivity extends AppCompatActivity {
 
         //inflating the layout for profile-creation activity
         setContentView(R.layout.activity_profile_creator);
+
+//        startService(new Intent(getBaseContext(), GPSLocationServiceActivity.class));
 
         databaseHelperActivity = new DatabaseHelperActivity(getApplicationContext());
 
@@ -90,6 +93,12 @@ public class ProfileCreatorActivity extends AppCompatActivity {
                 textViewLongitude.setPadding(0, 0, 0, 10);
                 layout.addView(textViewLongitude);
 
+                final CheckBox checkBoxCurrentLocation = new CheckBox(ProfileCreatorActivity.this);
+                checkBoxCurrentLocation.setChecked(false);
+                checkBoxCurrentLocation.setText("Get current location");
+                checkBoxCurrentLocation.setTextColor(Color.rgb(0, 0, 0));
+                layout.addView(checkBoxCurrentLocation);
+
                 //Code for Button that triggers the GPS Location Service to fetch location co-ordinates
                 Button buttonLForCurrentLocation = new Button(ProfileCreatorActivity.this);
                 buttonLForCurrentLocation.setText("CURRENT LOCATION");
@@ -107,8 +116,8 @@ public class ProfileCreatorActivity extends AppCompatActivity {
                             //code to fetch the latitude & longitude for the current profile
                             String latitude = String.valueOf(gpsLocationServiceActivity.getLatitude());
                             String longitude = String.valueOf(gpsLocationServiceActivity.getLongitude());
-                            textViewLatitude.setText(latitude);
-                            textViewLongitude.setText(longitude);
+                            textViewLatitude.setText(latitude.substring(0, 7));
+                            textViewLongitude.setText(longitude.substring(0, 7));
 
                         } else {
 
@@ -203,6 +212,12 @@ public class ProfileCreatorActivity extends AppCompatActivity {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         //TODO logic for creating a custom context menu to delete the profile
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        displayProfiles();
     }
 }
 

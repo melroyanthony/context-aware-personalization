@@ -1,6 +1,7 @@
 package com.example.aero.localife.create_profile;
 
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,6 +13,9 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.widget.Toast;
+
+import com.example.aero.localife.DatabaseHelperActivity;
 
 public class GPSLocationServiceActivity extends Service implements LocationListener {
 
@@ -42,6 +46,39 @@ public class GPSLocationServiceActivity extends Service implements LocationListe
     public GPSLocationServiceActivity(Context context) {
         this.mContext = context;
         getLocation();
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        DatabaseHelperActivity databaseHelperActivity = new DatabaseHelperActivity(GPSLocationServiceActivity.this);
+
+        String serviceLatitude = String.valueOf(location.getLatitude());
+        String serviceLatitudeSubString = serviceLatitude.substring(0, 7);
+
+        String serviceLongitude = String.valueOf(location.getLongitude());
+        String serviceLongitudeSubString = serviceLongitude.substring(0, 7);
+
+        String matchedProfile = databaseHelperActivity.getProfileForLocationMatched(serviceLatitudeSubString, serviceLongitudeSubString);
+        String bluetoothStatus = databaseHelperActivity.getCurrentBluetoothValue(matchedProfile);
+
+        String bluetoothON = "ON";
+
+        if (bluetoothStatus.equals(bluetoothON.trim())){
+            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            bluetoothAdapter.enable();
+            Toast.makeText(GPSLocationServiceActivity.this, matchedProfile + " is Activated!", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(GPSLocationServiceActivity.this, matchedProfile + " is not active!", Toast.LENGTH_LONG).show();
+        }
+
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+        return START_STICKY;
     }
 
     public Location getLocation() {

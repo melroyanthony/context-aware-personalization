@@ -1,6 +1,8 @@
 package com.example.aero.localife;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,6 +57,13 @@ public class ProfileAdapterActivity extends BaseAdapter {
         textViewProfileName.setText(profileListItems.getProfileName());
         TextView textViewProfileLocation = (TextView) convertView.findViewById(R.id.textView_location);
         textViewProfileLocation.setText(profileListItems.getLatitudeValue()+", "+profileListItems.getLongitudeValue());
+        TextView textViewBluetoothStatus = (TextView) convertView.findViewById(R.id.textView_status);
+        textViewBluetoothStatus.setText(profileListItems.getBluetoothStatus());
+        if (profileListItems.getBluetoothStatus().trim().equals("ON")){
+            textViewBluetoothStatus.setTextColor(Color.rgb(0, 255, 0));
+        } else {
+            textViewBluetoothStatus.setTextColor(Color.rgb(255, 0, 0));
+        }
         return convertView;
     }
 }

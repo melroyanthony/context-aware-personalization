@@ -99,7 +99,7 @@ public class DatabaseHelperActivity extends SQLiteOpenHelper {
     public String getCurrentBluetoothValue(String profileName) {
         SQLiteDatabase database = this.getReadableDatabase();
 
-        Cursor cursor = database.query(TABLE_PROFILE, new String[] {KEY_PROFILE_NAME, KEY_LOCATION_LATITUDE, KEY_LOCATION_LONGITUDE, KEY_BLUETOOTH}, KEY_PROFILE_NAME + "=?", new String[]{String.valueOf(profileName)}, null, null, null);
+        Cursor cursor = database.query(TABLE_PROFILE, new String[] {KEY_PROFILE_NAME, KEY_LOCATION_LATITUDE, KEY_LOCATION_LONGITUDE, KEY_BLUETOOTH}, KEY_PROFILE_NAME + "=?", new String[]{profileName}, null, null, null);
 
         if (cursor != null){
             cursor.moveToFirst();
@@ -108,4 +108,19 @@ public class DatabaseHelperActivity extends SQLiteOpenHelper {
         }
         return null;
     }
+
+
+    public String getProfileForLocationMatched(String serviceLatitudeSubString, String serviceLongitudeSubString) {
+        SQLiteDatabase database = this.getReadableDatabase();
+
+        Cursor cursor = database.query(TABLE_PROFILE, new String[]{KEY_PROFILE_NAME, KEY_LOCATION_LATITUDE, KEY_LOCATION_LONGITUDE, KEY_BLUETOOTH}, KEY_LOCATION_LATITUDE + "=? AND" + KEY_LOCATION_LONGITUDE + "=?", new String[]{serviceLatitudeSubString, serviceLongitudeSubString}, null, null, null);
+
+        if (cursor != null){
+            cursor.moveToFirst();
+            String profileName = cursor.getString(0);
+            return profileName;
+        }
+        return null;
+    }
+
 }
