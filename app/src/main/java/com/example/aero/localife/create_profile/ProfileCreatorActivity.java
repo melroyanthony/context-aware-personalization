@@ -1,11 +1,15 @@
 package com.example.aero.localife.create_profile;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -42,13 +46,21 @@ public class ProfileCreatorActivity extends AppCompatActivity {
     ListView listView;
 
     //LOG Strings
+    private String TAG = "ProfileCreatorActivity";
     private static final String PROFILE_SELECTED_TAG = "Profile Selected LOG:";
     private static final String DIALOG_DECLINED_TAG = "Dialog Declined LOG:";
-
+    public final int LOCATION_PERMISSION = 111;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+           // Log.d(TAG, "Location Permission request required");
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    LOCATION_PERMISSION);
+        }
         //inflating the layout for profile-creation activity
         setContentView(R.layout.activity_profile_creator);
 
@@ -108,7 +120,7 @@ public class ProfileCreatorActivity extends AppCompatActivity {
                 buttonLForCurrentLocation.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
+                        Log.d(TAG, "in inside");
                         gpsLocationServiceActivity = new GPSLocationServiceActivity(ProfileCreatorActivity.this);
 
                         if (gpsLocationServiceActivity.canGetLocation()) {
@@ -116,8 +128,11 @@ public class ProfileCreatorActivity extends AppCompatActivity {
                             //code to fetch the latitude & longitude for the current profile
                             String latitude = String.valueOf(gpsLocationServiceActivity.getLatitude());
                             String longitude = String.valueOf(gpsLocationServiceActivity.getLongitude());
-                            textViewLatitude.setText(latitude.substring(0, 7));
-                            textViewLongitude.setText(longitude.substring(0, 7));
+                        //    textViewLatitude.setText(latitude.substring(0, 7)
+                            //    textViewLongitude.setText(longitude.substring(0, 7));
+                            textViewLatitude.setText(latitude);
+                            textViewLongitude.setText(longitude);
+
 
                         } else {
 
