@@ -5,26 +5,22 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.LocationListener;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.media.MediaBrowserCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
 import android.view.ContextMenu;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.aero.localife.DatabaseHelperActivity;
@@ -35,6 +31,7 @@ import com.example.aero.localife.profile_settings.ProfileSettingsActivity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class ProfileCreatorActivity extends AppCompatActivity {
 
@@ -42,7 +39,6 @@ public class ProfileCreatorActivity extends AppCompatActivity {
     FloatingActionButton fabForProfileCreation;
     GPSLocationServiceActivity gpsLocationServiceActivity;
     DatabaseHelperActivity databaseHelperActivity;
-    public ProfileAdapterActivity profileAdapterActivity;
     ListView listView;
 
     //LOG Strings
@@ -56,16 +52,13 @@ public class ProfileCreatorActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-           // Log.d(TAG, "Location Permission request required");
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_PERMISSION);
         }
         //inflating the layout for profile-creation activity
         setContentView(R.layout.activity_profile_creator);
-
-//        startService(new Intent(getBaseContext(), GPSLocationServiceActivity.class));
-
+        
         databaseHelperActivity = new DatabaseHelperActivity(getApplicationContext());
 
         listView = (ListView) findViewById(R.id.listview_profile_creator);
@@ -91,82 +84,57 @@ public class ProfileCreatorActivity extends AppCompatActivity {
                 editTextProfileName.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
                 layout.addView(editTextProfileName);
 
-                //Code to display TextView for Latitude
-                final TextView textViewLatitude = new TextView(ProfileCreatorActivity.this);
-                textViewLatitude.setGravity(Gravity.CENTER);
-                textViewLatitude.setTextSize(16);
-                textViewLatitude.setPadding(0, 10, 0, 10);
-                layout.addView(textViewLatitude);
-
-                //Code to display TextView for Longitude
-                final TextView textViewLongitude = new TextView(ProfileCreatorActivity.this);
-                textViewLongitude.setGravity(Gravity.CENTER);
-                textViewLongitude.setTextSize(16);
-                textViewLongitude.setPadding(0, 0, 0, 10);
-                layout.addView(textViewLongitude);
-
                 final CheckBox checkBoxCurrentLocation = new CheckBox(ProfileCreatorActivity.this);
-                checkBoxCurrentLocation.setChecked(false);
+                checkBoxCurrentLocation.setChecked(true);
+                checkBoxCurrentLocation.setTextSize(16);
+                checkBoxCurrentLocation.setPadding(0, 16, 0, 16);
                 checkBoxCurrentLocation.setText("Get current location");
                 checkBoxCurrentLocation.setTextColor(Color.rgb(0, 0, 0));
                 layout.addView(checkBoxCurrentLocation);
-
-                //Code for Button that triggers the GPS Location Service to fetch location co-ordinates
-                Button buttonLForCurrentLocation = new Button(ProfileCreatorActivity.this);
-                buttonLForCurrentLocation.setText("CURRENT LOCATION");
-                buttonLForCurrentLocation.setGravity(Gravity.CENTER);
-                buttonLForCurrentLocation.setBackgroundColor(Color.rgb(0, 150, 136));
-                buttonLForCurrentLocation.setTextColor(Color.rgb(255, 255, 255));
-                buttonLForCurrentLocation.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Log.d(TAG, "in inside");
-                        gpsLocationServiceActivity = new GPSLocationServiceActivity(ProfileCreatorActivity.this);
-
-                        if (gpsLocationServiceActivity.canGetLocation()) {
-
-                            //code to fetch the latitude & longitude for the current profile
-                            String latitude = String.valueOf(gpsLocationServiceActivity.getLatitude());
-                            String longitude = String.valueOf(gpsLocationServiceActivity.getLongitude());
-                        //    textViewLatitude.setText(latitude.substring(0, 7)
-                            //    textViewLongitude.setText(longitude.substring(0, 7));
-                            textViewLatitude.setText(latitude);
-                            textViewLongitude.setText(longitude);
-
-
-                        } else {
-
-                            gpsLocationServiceActivity.showSettingsAlert();
-
-                        }
-                    }
-                });
-                layout.addView(buttonLForCurrentLocation);
 
                 builder.setView(layout, 40, 20, 40, 24);
 
                 builder.setPositiveButton(R.string.profile_creator_dialog_accept, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        String enteredProfileName = editTextProfileName.getText().toString().trim();
+                        Boolean rowExist = databaseHelperActivity.getProfileListEmptyStatus();
+
+                        gpsLocationServiceActivity = new GPSLocationServiceActivity(ProfileCreatorActivity.this);
+
                         if (editTextProfileName.getText().toString().trim().isEmpty()) {
 
                             Toast.makeText(getApplicationContext(), "Cannot create blank profile!", Toast.LENGTH_SHORT).show();
 
-                        } else if (textViewLatitude.getText().toString().trim().isEmpty() && textViewLongitude.getText().toString().trim().isEmpty()) {
+                        } else if (!checkBoxCurrentLocation.isChecked()){
 
-                            Toast.makeText(getApplicationContext(), "Cannot Proceed without a location. Click on CURRENT LOCATION button!", Toast.LENGTH_LONG).show();
+                            Toast.makeText(ProfileCreatorActivity.this, "Select the checkbox to fetch current location!", Toast.LENGTH_SHORT).show();
+
+                        } else if (!gpsLocationServiceActivity.canGetLocation()) {
+
+                            gpsLocationServiceActivity.showSettingsAlert();
+
+                        } else if(rowExist){
+
+                            String matchedProfileName = databaseHelperActivity.getProfileValue(enteredProfileName);
+                            Log.i("Profile Matched LOG", matchedProfileName + "matched!");
+                            Toast.makeText(ProfileCreatorActivity.this, "Cannot create duplicate profiles!", Toast.LENGTH_SHORT).show();
 
                         } else {
 
+                            //code to fetch the latitude & longitude for the current profile
+                            String latitude = String.valueOf(gpsLocationServiceActivity.getLatitude());
+                            String longitude = String.valueOf(gpsLocationServiceActivity.getLongitude());
                             String profileName =  editTextProfileName.getText().toString().trim();
-                            String latitudeValue = textViewLatitude.getText().toString().trim();
-                            String longitudeValue = textViewLongitude.getText().toString().trim();
+                            String latitudeValue = latitude.substring(0, 7);
+                            String longitudeValue = longitude.substring(0, 7);
                             String statusValue = "OFF";
                             databaseHelperActivity.createNewProfile(new ProfileListActivity(profileName, latitudeValue, longitudeValue, statusValue));
                             displayProfiles();
                             dialog.dismiss();
 
                         }
+
                     }
                 });
 

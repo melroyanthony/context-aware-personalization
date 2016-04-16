@@ -1,0 +1,61 @@
+Index: app/src/main/java/com/example/aero/localife/create_profile/ProfileCreatorActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/aero/localife/create_profile/ProfileCreatorActivity.java	(revision 3a466043d820c7cc6372e204eefcb4f86cc02f28)
++++ app/src/main/java/com/example/aero/localife/create_profile/ProfileCreatorActivity.java	(revision )
+@@ -94,7 +94,7 @@
+                 layout.addView(textViewLongitude);
+ 
+                 final CheckBox checkBoxCurrentLocation = new CheckBox(ProfileCreatorActivity.this);
+-                checkBoxCurrentLocation.setChecked(false);
++                checkBoxCurrentLocation.setChecked(true);
+                 checkBoxCurrentLocation.setText("Get current location");
+                 checkBoxCurrentLocation.setTextColor(Color.rgb(0, 0, 0));
+                 layout.addView(checkBoxCurrentLocation);
+@@ -133,6 +133,8 @@
+                 builder.setPositiveButton(R.string.profile_creator_dialog_accept, new DialogInterface.OnClickListener() {
+                     @Override
+                     public void onClick(DialogInterface dialog, int which) {
++                        String enteredProfileName = editTextProfileName.getText().toString().trim();
++                        String matchedProfileName = databaseHelperActivity.getProfileValue(enteredProfileName);
+                         if (editTextProfileName.getText().toString().trim().isEmpty()) {
+ 
+                             Toast.makeText(getApplicationContext(), "Cannot create blank profile!", Toast.LENGTH_SHORT).show();
+@@ -140,6 +142,10 @@
+                         } else if (textViewLatitude.getText().toString().trim().isEmpty() && textViewLongitude.getText().toString().trim().isEmpty()) {
+ 
+                             Toast.makeText(getApplicationContext(), "Cannot Proceed without a location. Click on CURRENT LOCATION button!", Toast.LENGTH_LONG).show();
++
++                        } else if (enteredProfileName.equals(matchedProfileName)){
++
++                            Toast.makeText(ProfileCreatorActivity.this, "Cannot create a duplicate profile!", Toast.LENGTH_SHORT).show();
+ 
+                         } else {
+ 
+Index: app/src/main/java/com/example/aero/localife/DatabaseHelperActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/aero/localife/DatabaseHelperActivity.java	(revision 3a466043d820c7cc6372e204eefcb4f86cc02f28)
++++ app/src/main/java/com/example/aero/localife/DatabaseHelperActivity.java	(revision )
+@@ -123,4 +123,17 @@
+         return null;
+     }
+ 
++    public String getProfileValue(String profileName) {
++        SQLiteDatabase database = this.getReadableDatabase();
++
++        Cursor cursor = database.query(TABLE_PROFILE, new String[] {KEY_PROFILE_NAME, KEY_LOCATION_LATITUDE, KEY_LOCATION_LONGITUDE, KEY_BLUETOOTH}, KEY_PROFILE_NAME + "=?", new String[]{profileName}, null, null, null);
++
++        if (cursor != null){
++            cursor.moveToFirst();
++            String profileNameValue = cursor.getString(0);
++            return profileNameValue;
++        }
++        return null;
++    }
++
+ }

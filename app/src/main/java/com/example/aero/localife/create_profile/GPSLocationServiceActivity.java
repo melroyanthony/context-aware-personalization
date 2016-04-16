@@ -1,20 +1,16 @@
 package com.example.aero.localife.create_profile;
 
-import android.Manifest;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
@@ -37,7 +33,7 @@ public class GPSLocationServiceActivity extends Service implements LocationListe
     Location location; // location
     double latitude; // latitude
     double longitude; // longitude
-    public static int LOCATION_PERMISSION=111;
+//    public static int LOCATION_PERMISSION = 111;
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
 
@@ -55,27 +51,6 @@ public class GPSLocationServiceActivity extends Service implements LocationListe
     @Override
     public void onCreate() {
         super.onCreate();
-
-        DatabaseHelperActivity databaseHelperActivity = new DatabaseHelperActivity(GPSLocationServiceActivity.this);
-
-        String serviceLatitude = String.valueOf(location.getLatitude());
-        String serviceLatitudeSubString = serviceLatitude.substring(0, 7);
-
-        String serviceLongitude = String.valueOf(location.getLongitude());
-        String serviceLongitudeSubString = serviceLongitude.substring(0, 7);
-
-        String matchedProfile = databaseHelperActivity.getProfileForLocationMatched(serviceLatitudeSubString, serviceLongitudeSubString);
-        String bluetoothStatus = databaseHelperActivity.getCurrentBluetoothValue(matchedProfile);
-
-        String bluetoothON = "ON";
-
-        if (bluetoothStatus.equals(bluetoothON.trim())){
-            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-            bluetoothAdapter.enable();
-            Toast.makeText(GPSLocationServiceActivity.this, matchedProfile + " is Activated!", Toast.LENGTH_LONG).show();
-        } else {
-            Toast.makeText(GPSLocationServiceActivity.this, matchedProfile + " is not active!", Toast.LENGTH_LONG).show();
-        }
 
     }
 
@@ -104,14 +79,7 @@ public class GPSLocationServiceActivity extends Service implements LocationListe
                 this.canGetLocation = true;
                 // First get location from Network Provider
                 if (isNetworkEnabled) {
-                    if (ContextCompat.checkSelfPermission(this,
-                            Manifest.permission.ACCESS_FINE_LOCATION)
-                            != PackageManager.PERMISSION_GRANTED) {
-                     /* //  Log.d(TAG, "Location Permission request required");
-                        ActivityCompat.requestPermissions(getApplicationContext(),
-                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                LOCATION_PERMISSION);*/
-                    }
+
                     locationManager.requestLocationUpdates(
                             LocationManager.NETWORK_PROVIDER,
                             MIN_TIME_BW_UPDATES,
@@ -193,7 +161,7 @@ public class GPSLocationServiceActivity extends Service implements LocationListe
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(mContext);
 
         // Setting Dialog Title
-        alertDialog.setTitle("GPS is settings");
+        alertDialog.setTitle("Enable GPS for Context-Aware");
 
         // Setting Dialog Message
         alertDialog.setMessage("GPS is not enabled. Do you want to go to settings menu?");
