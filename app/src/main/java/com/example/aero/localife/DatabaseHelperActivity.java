@@ -50,7 +50,7 @@ public class DatabaseHelperActivity extends SQLiteOpenHelper {
 
     }
 
-    //Methods for Profile Table
+    //Method for creating a new profile
     public void createNewProfile(ProfileListActivity profileListActivity){
 
         SQLiteDatabase database = this.getWritableDatabase();
@@ -65,6 +65,7 @@ public class DatabaseHelperActivity extends SQLiteOpenHelper {
         database.close();
     }
 
+    //Method for fetching the complete database to inflate the list of profiles
     public List<ProfileListActivity> getAllProfiles(){
         List<ProfileListActivity> profileListActivities = new ArrayList<ProfileListActivity>();
 
@@ -87,6 +88,7 @@ public class DatabaseHelperActivity extends SQLiteOpenHelper {
         return profileListActivities;
     }
 
+    //Method to update the values for Bluetooth Activation
     public void onUpdateBluetoothValue(String profileName, String bluetoothStatus){
         SQLiteDatabase database = this.getWritableDatabase();
 
@@ -96,6 +98,7 @@ public class DatabaseHelperActivity extends SQLiteOpenHelper {
         database.update(TABLE_PROFILE, values, KEY_PROFILE_NAME + "=?", new String[]{String.valueOf(profileName)});
     }
 
+    //Method to fetch the current value for bluetooth from the database
     public String getCurrentBluetoothValue(String profileName) {
         SQLiteDatabase database = this.getReadableDatabase();
 
@@ -109,7 +112,7 @@ public class DatabaseHelperActivity extends SQLiteOpenHelper {
         return null;
     }
 
-
+    //Method to fetch the values for last known location to trigger the bluetooth for corresponding profile
     public String getProfileForLocationMatched(String serviceLatitudeSubString, String serviceLongitudeSubString) {
         SQLiteDatabase database = this.getReadableDatabase();
 
@@ -121,6 +124,46 @@ public class DatabaseHelperActivity extends SQLiteOpenHelper {
             return profileName;
         }
         return null;
+    }
+
+    //Method to compare the profiles for checking data redundancy
+    public String getProfileValue(String profileName) {
+        SQLiteDatabase database = this.getReadableDatabase();
+
+        Cursor cursor = database.query(TABLE_PROFILE, new String[] {KEY_PROFILE_NAME, KEY_LOCATION_LATITUDE, KEY_LOCATION_LONGITUDE, KEY_BLUETOOTH}, KEY_PROFILE_NAME + "=?", new String[]{profileName}, null, null, null);
+
+        if (cursor != null){
+            cursor.moveToFirst();
+            String profileNameValue = cursor.getString(0);
+            return profileNameValue;
+        }
+
+        if (cursor != null && !cursor.isClosed()) {
+            cursor.close();
+        }
+        return null;
+    }
+
+    //Method for checking the database status to check for the profile data redundancy
+    public Boolean getProfileListEmptyStatus() {
+        String countQuery = "SELECT  * FROM " + TABLE_PROFILE;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(countQuery, null);
+
+        Boolean rowExists;
+
+        if (cursor.moveToFirst())
+        {
+            // DO SOMETHING WITH CURSOR
+            rowExists = true;
+
+        } else
+        {
+            // I AM EMPTY
+            rowExists = false;
+        }
+
+        return rowExists;
     }
 
 }

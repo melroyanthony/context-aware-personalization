@@ -35,9 +35,7 @@
         </activity>
 
         <service
-            android:name=".create_profile.GPSLocationServiceActivity"
-            android:enabled="true"
-            android:exported="true" />
+            android:name=".create_profile.GPSLocationServiceActivity" />
     </application>
 
 </manifest>

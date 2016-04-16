@@ -1,9 +1,11 @@
 package com.example.aero.localife.create_profile;
 
+
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.LoaderManager;
 import android.app.Notification;
+
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
@@ -12,6 +14,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -19,10 +22,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
@@ -58,10 +63,12 @@ public class GPSLocationServiceActivity extends Service implements LoaderManager
     Location location; // location
     double latitude; // latitude
     double longitude; // longitude
+
     public static int LOCATION_PERMISSION = 111;
     private final int SERVICE_ID = 101;
     public GoogleApiClient mGoogleApiClient;
     private String TAG = "GPSLocationServiceActivity";
+
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
     private Location mLastLocation;
@@ -85,6 +92,7 @@ public class GPSLocationServiceActivity extends Service implements LoaderManager
     @Override
     public void onCreate() {
         super.onCreate();
+
       // location = getLocation();
         if (mGoogleApiClient == null) {
 
@@ -116,7 +124,8 @@ public class GPSLocationServiceActivity extends Service implements LoaderManager
                 Toast.makeText(GPSLocationServiceActivity.this, matchedProfile + " is not active!", Toast.LENGTH_LONG).show();
             }
         }
-    }
+
+}
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @Override
@@ -235,7 +244,7 @@ public class GPSLocationServiceActivity extends Service implements LoaderManager
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(mContext);
 
         // Setting Dialog Title
-        alertDialog.setTitle("GPS is settings");
+        alertDialog.setTitle("Enable GPS for Context-Aware");
 
         // Setting Dialog Message
         alertDialog.setMessage("GPS is not enabled. Do you want to go to settings menu?");
