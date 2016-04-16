@@ -1,18 +1,26 @@
 package com.example.aero.localife.create_profile;
 
 import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.LoaderManager;
+import android.app.Notification;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -20,10 +28,23 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.aero.localife.DatabaseHelperActivity;
+import com.example.aero.localife.R;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 
-public class GPSLocationServiceActivity extends Service implements LocationListener {
+public class GPSLocationServiceActivity extends Service implements LoaderManager.LoaderCallbacks<Cursor>, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
-    private final Context mContext;
+    private Context mContext;
 
     // flag for GPS status
     boolean isGPSEnabled = false;
@@ -37,9 +58,13 @@ public class GPSLocationServiceActivity extends Service implements LocationListe
     Location location; // location
     double latitude; // latitude
     double longitude; // longitude
-    public static int LOCATION_PERMISSION=111;
+    public static int LOCATION_PERMISSION = 111;
+    private final int SERVICE_ID = 101;
+    public GoogleApiClient mGoogleApiClient;
+    private String TAG = "GPSLocationServiceActivity";
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
+    private Location mLastLocation;
 
     // The minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
@@ -51,41 +76,63 @@ public class GPSLocationServiceActivity extends Service implements LocationListe
         this.mContext = context;
         getLocation();
     }
+    Notification notification = null;
+
+    public GPSLocationServiceActivity() {
+
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
+      // location = getLocation();
+        if (mGoogleApiClient == null) {
 
-        DatabaseHelperActivity databaseHelperActivity = new DatabaseHelperActivity(GPSLocationServiceActivity.this);
-
-        String serviceLatitude = String.valueOf(location.getLatitude());
-        String serviceLatitudeSubString = serviceLatitude.substring(0, 7);
-
-        String serviceLongitude = String.valueOf(location.getLongitude());
-        String serviceLongitudeSubString = serviceLongitude.substring(0, 7);
-
-        String matchedProfile = databaseHelperActivity.getProfileForLocationMatched(serviceLatitudeSubString, serviceLongitudeSubString);
-        String bluetoothStatus = databaseHelperActivity.getCurrentBluetoothValue(matchedProfile);
-
-        String bluetoothON = "ON";
-
-        if (bluetoothStatus.equals(bluetoothON.trim())){
-            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-            bluetoothAdapter.enable();
-            Toast.makeText(GPSLocationServiceActivity.this, matchedProfile + " is Activated!", Toast.LENGTH_LONG).show();
-        } else {
-            Toast.makeText(GPSLocationServiceActivity.this, matchedProfile + " is not active!", Toast.LENGTH_LONG).show();
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .addApi(AppIndex.API)
+                    .build();
         }
+        DatabaseHelperActivity databaseHelperActivity = new DatabaseHelperActivity(GPSLocationServiceActivity.this);
+        if(location != null) {
+            String serviceLatitude = String.valueOf(location.getLatitude());
+            String serviceLatitudeSubString = serviceLatitude.substring(0, 7);
 
+            String serviceLongitude = String.valueOf(location.getLongitude());
+            String serviceLongitudeSubString = serviceLongitude.substring(0, 7);
+
+            String matchedProfile = databaseHelperActivity.getProfileForLocationMatched(serviceLatitudeSubString, serviceLongitudeSubString);
+            String bluetoothStatus = databaseHelperActivity.getCurrentBluetoothValue(matchedProfile);
+
+            String bluetoothON = "ON";
+
+            if (bluetoothStatus.equals(bluetoothON.trim())) {
+                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                bluetoothAdapter.enable();
+                Toast.makeText(GPSLocationServiceActivity.this, matchedProfile + " is Activated!", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(GPSLocationServiceActivity.this, matchedProfile + " is not active!", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+      //  Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+        mGoogleApiClient.connect();
+        String latitude = String.valueOf(getLatitude());
+        String longitude = String.valueOf(getLongitude());
+
+        createLocationRequest();
+
         return START_STICKY;
     }
 
     public Location getLocation() {
+        /*
         try {
             locationManager = (LocationManager) mContext
                     .getSystemService(LOCATION_SERVICE);
@@ -104,18 +151,11 @@ public class GPSLocationServiceActivity extends Service implements LocationListe
                 this.canGetLocation = true;
                 // First get location from Network Provider
                 if (isNetworkEnabled) {
-                    if (ContextCompat.checkSelfPermission(this,
-                            Manifest.permission.ACCESS_FINE_LOCATION)
-                            != PackageManager.PERMISSION_GRANTED) {
-                     /* //  Log.d(TAG, "Location Permission request required");
-                        ActivityCompat.requestPermissions(getApplicationContext(),
-                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                LOCATION_PERMISSION);*/
-                    }
+
                     locationManager.requestLocationUpdates(
                             LocationManager.NETWORK_PROVIDER,
                             MIN_TIME_BW_UPDATES,
-                            MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+                            MIN_DISTANCE_CHANGE_FOR_UPDATES, (LocationListener) this);
                     Log.d("Network", "Network");
                     if (locationManager != null) {
                         location = locationManager
@@ -125,6 +165,7 @@ public class GPSLocationServiceActivity extends Service implements LocationListe
                             longitude = location.getLongitude();
                         }
                     }
+
                 }
                 // if GPS Enabled get lat/long using GPS Services
                 if (isGPSEnabled) {
@@ -150,7 +191,8 @@ public class GPSLocationServiceActivity extends Service implements LocationListe
             e.printStackTrace();
         }
 
-        return location;
+        return location; */
+        return null;
     }
 
     /**
@@ -222,24 +264,104 @@ public class GPSLocationServiceActivity extends Service implements LocationListe
         // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
     }
+    protected void createLocationRequest() {
+
+        final LocationRequest mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(100000);
+        mLocationRequest.setFastestInterval(50000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient,
+                        builder.build());
+
+
+        Log.d(TAG, "creating request");
+
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+            @Override
+            public void onResult(LocationSettingsResult result) {
+                Log.d(TAG, "in on result");
+
+                final Status status = result.getStatus();
+                final LocationSettingsStates states = result.getLocationSettingsStates();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // All location settings are satisfied. The client can
+                        // initialize location requests here.
+                        //...
+                        Log.d(TAG, "in Sucess");
+
+                        try {
+                            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                                    mGoogleApiClient);
+                            if (mLastLocation == null)
+                                Log.d(TAG, "mLastLocation is null");
+                            if (mGoogleApiClient == null)
+                                Log.d(TAG, "mGoogleAPiCLient is null");
+                            else
+                                Log.d(TAG, "nothing is null");
+
+
+                        } catch (SecurityException e) {
+                            e.printStackTrace();
+                        }
+                        if (mLastLocation != null) {
+                            Toast.makeText(getApplicationContext(), "Latitude: " + String.valueOf(mLastLocation.getLatitude()) + ", " + "Longitude: " + String.valueOf(mLastLocation.getLongitude()), Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, "Latitude: " + String.valueOf(mLastLocation.getLatitude()) + ", " + "Longitude: " + String.valueOf(mLastLocation.getLongitude()));
+                            double latitude = mLastLocation.getLatitude();
+                            double longitude = mLastLocation.getLongitude();
+                            Notification.Builder builder = new Notification.Builder(getApplicationContext())
+                                    .setSmallIcon(R.mipmap.ic_launcher)
+                                    .setContentTitle("Location Service Running")
+                                    .setContentText("Latitude: "+latitude+", Longitude: "+longitude);
+                            notification = builder.build();
+                            startForeground(SERVICE_ID, notification);
+
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        Log.d(TAG, "in on resolution required");
+
+
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        Log.d(TAG, "in on no option");
+
+                        break;
+                }
+            }
+        });
+    }
 
     @Override
-    public void onLocationChanged(Location location) {
+    public void onConnected(@Nullable Bundle bundle) {
 
     }
 
     @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
+    public void onConnectionSuspended(int i) {
 
     }
 
     @Override
-    public void onProviderEnabled(String provider) {
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return null;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
     }
 
     @Override
-    public void onProviderDisabled(String provider) {
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
 }
