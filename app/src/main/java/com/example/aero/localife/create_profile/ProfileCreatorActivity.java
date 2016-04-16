@@ -186,6 +186,8 @@ public class ProfileCreatorActivity extends AppCompatActivity {
         });
 
         registerForContextMenu(listView);
+        Intent intent = new Intent(getApplicationContext(), GPSLocationServiceActivity.class);
+        startService(intent);
 
     }
 
