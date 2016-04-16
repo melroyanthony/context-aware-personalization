@@ -154,6 +154,8 @@ public class ProfileCreatorActivity extends AppCompatActivity {
         });
 
         registerForContextMenu(listView);
+        Intent intent = new Intent(getApplicationContext(), LocationCheckerServiceActivity.class);
+        startService(intent);
 
     }
 
@@ -181,6 +183,8 @@ public class ProfileCreatorActivity extends AppCompatActivity {
         });
 
         registerForContextMenu(listView);
+        Intent intent = new Intent(getApplicationContext(), LocationCheckerServiceActivity.class);
+        startService(intent);
     }
 
     private void gotoProfileSettingsActivity(String selectedProfile) {
@@ -201,6 +205,7 @@ public class ProfileCreatorActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         displayProfiles();
+
     }
 }
 

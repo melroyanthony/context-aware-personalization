@@ -36,6 +36,8 @@
 
         <service
             android:name=".create_profile.GPSLocationServiceActivity" />
+        <service
+            android:name=".create_profile.LocationCheckerServiceActivity" />
     </application>
 
 </manifest>

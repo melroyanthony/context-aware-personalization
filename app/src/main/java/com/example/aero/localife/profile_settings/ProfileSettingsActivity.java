@@ -1,5 +1,6 @@
 package com.example.aero.localife.profile_settings;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -10,6 +11,7 @@ import android.view.View;
 
 import com.example.aero.localife.DatabaseHelperActivity;
 import com.example.aero.localife.R;
+import com.example.aero.localife.create_profile.LocationCheckerServiceActivity;
 
 public class ProfileSettingsActivity extends PreferenceActivity {
 

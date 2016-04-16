@@ -51,7 +51,6 @@ public class GPSLocationServiceActivity extends Service implements LocationListe
     @Override
     public void onCreate() {
         super.onCreate();
-
     }
 
     @Override

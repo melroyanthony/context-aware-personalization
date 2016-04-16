@@ -116,13 +116,18 @@ public class DatabaseHelperActivity extends SQLiteOpenHelper {
     public String getProfileForLocationMatched(String serviceLatitudeSubString, String serviceLongitudeSubString) {
         SQLiteDatabase database = this.getReadableDatabase();
 
-        Cursor cursor = database.query(TABLE_PROFILE, new String[]{KEY_PROFILE_NAME, KEY_LOCATION_LATITUDE, KEY_LOCATION_LONGITUDE, KEY_BLUETOOTH}, KEY_LOCATION_LATITUDE + "=? AND" + KEY_LOCATION_LONGITUDE + "=?", new String[]{serviceLatitudeSubString, serviceLongitudeSubString}, null, null, null);
+        Cursor cursor = database.query(TABLE_PROFILE, new String[]{KEY_PROFILE_NAME, KEY_LOCATION_LATITUDE, KEY_LOCATION_LONGITUDE, KEY_BLUETOOTH}, KEY_LOCATION_LATITUDE + "=? AND " + KEY_LOCATION_LONGITUDE + "=?", new String[]{serviceLatitudeSubString, serviceLongitudeSubString}, null, null, null);
 
         if (cursor != null){
             cursor.moveToFirst();
             String profileName = cursor.getString(0);
             return profileName;
         }
+
+        if (cursor != null && !cursor.isClosed()) {
+            cursor.close();
+        }
+
         return null;
     }
 
@@ -141,6 +146,7 @@ public class DatabaseHelperActivity extends SQLiteOpenHelper {
         if (cursor != null && !cursor.isClosed()) {
             cursor.close();
         }
+
         return null;
     }
 
